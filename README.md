@@ -26,16 +26,7 @@
 
 ## 🚨 What Makes This Lab Different?
 
-Most Wazuh projects stop after installation.
-
-This project documents the complete lifecycle of a SOC platform:
-
-- Deployment
-- Configuration
-- Detection Validation
-- Attack Simulation
-- Failure Recovery
-- Performance Troubleshooting
+Most Wazuh projects stop after installation. This project documents the complete lifecycle of a SOC platform: deployment, configuration, detection validation, attack simulation, failure recovery, and performance troubleshooting.
 
 ### Highlights
 
@@ -53,15 +44,9 @@ This project documents the complete lifecycle of a SOC platform:
 
 ✅ End-to-end alert verification
 
-❌ Not a pre-built VM
+❌ Not a pre-built VM &nbsp; ❌ Not a copy-paste Docker deployment &nbsp; 
 
-❌ Not a copy-paste Docker deployment
-
-❌ Not a tutorial follow-along
-
-The goal was not simply to install Wazuh.
-
-The goal was to understand how a SIEM behaves when things break, and when it is attacked.
+The goal was not simply to install Wazuh. The goal was to understand how a SIEM behaves when things break, and when it is attacked.
 
 ---
 
@@ -83,9 +68,7 @@ The goal was to understand how a SIEM behaves when things break, and when it is 
 
 ## 🎯 What I Built
 
-Built from a clean Ubuntu Server installation and configured entirely by hand.
-
-The environment was deployed, monitored, broken, repaired, attacked, and validated to understand how a real SOC platform behaves beyond the installation stage.
+Built from a clean Ubuntu Server installation and configured entirely by hand. The environment was deployed, monitored, broken, repaired, attacked, and validated to understand how a real SOC platform behaves beyond the installation stage.
 
 | Capability | Status |
 |---|---|
@@ -149,17 +132,20 @@ The environment was deployed, monitored, broken, repaired, attacked, and validat
 
 ## 🚀 Installation & Setup
 
-### Phase 1 — Network Verification
+### Phase 1 - Network Verification
 
 Before touching Wazuh, I verified bidirectional connectivity between both VMs.
 
-![Kali pinging Ubuntu](Lab%20Screenshots/01-setup/01-kali-ping-ubuntu.png)
-
-![Ubuntu pinging Kali](Lab%20Screenshots/01-setup/02-ubuntu-ping-kali.png)
+<div align="center">
+  <img src="Lab%20Screenshots/01-setup/01-kali-ping-ubuntu.png" width="700">
+  <p><em>Kali pinging Ubuntu (192.168.50.200)</em></p>
+  <img src="Lab%20Screenshots/01-setup/02-ubuntu-ping-kali.png" width="700">
+  <p><em>Ubuntu pinging Kali (192.168.50.191)</em></p>
+</div>
 
 ---
 
-### Phase 2 — Wazuh Stack Installation
+### Phase 2 - Wazuh Stack Installation
 
 ```bash
 curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh
@@ -168,7 +154,10 @@ sudo bash ./wazuh-install.sh -a -i
 
 **ARM64 Challenge:** The standard install script flags Apple Silicon as unsupported hardware. The `-i` flag bypasses this check and the install runs perfectly on aarch64.
 
-![SSH install start](Lab%20Screenshots/02-installation/02-installation%3A01-ssh-install-start.png)
+<div align="center">
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A01-ssh-install-start.png" width="700">
+  <p><em>SSH into Ubuntu and start the install</em></p>
+</div>
 
 **Port conflict:** The install initially failed because SafeLine WAF Docker containers from my previous lab were holding port 443.
 
@@ -177,25 +166,31 @@ sudo sh -c 'docker stop $(docker ps -q)'
 sudo bash ./wazuh-install.sh -a -i
 ```
 
-![Port conflict and Docker](Lab%20Screenshots/02-installation/02-installation%3A02-port-conflict-docker.png)
-
-![Install with -i flag](Lab%20Screenshots/02-installation/02-installation%3A03-install-i-flag.png)
-
-![Install success](Lab%20Screenshots/02-installation/02-installation%3A04-install-success.png)
+<div align="center">
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A02-port-conflict-docker.png" width="700">
+  <p><em>Port 443 conflict and stopping Docker containers</em></p>
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A03-install-i-flag.png" width="700">
+  <p><em>Re-running install with the -i flag</em></p>
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A04-install-success.png" width="700">
+  <p><em>Successful install, all components green</em></p>
+</div>
 
 ---
 
-### Phase 3 — Dashboard Access
+### Phase 3 - Dashboard Access
 
 Accessed the dashboard from Kali's browser at `https://192.168.50.200` using credentials generated during install.
 
-![Wazuh login](Lab%20Screenshots/02-installation/02-installation%3A05-wazuh-login.png)
-
-![Dashboard overview](Lab%20Screenshots/02-installation/02-installation%3A06-dashboard-overview.png)
+<div align="center">
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A05-wazuh-login.png" width="700">
+  <p><em>Wazuh login page</em></p>
+  <img src="Lab%20Screenshots/02-installation/02-installation%3A06-dashboard-overview.png" width="700">
+  <p><em>Wazuh dashboard overview</em></p>
+</div>
 
 ---
 
-### Phase 4 — Agent Deployment
+### Phase 4 - Agent Deployment
 
 Deployed the Wazuh agent on Kali using the dashboard's guided installer, selecting the Linux DEB aarch64 package.
 
@@ -205,19 +200,22 @@ wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.12
 sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo systemctl start wazuh-agent
 ```
 
-![Agent config](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A01-agent-config.png)
-
-![Agent download](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A02-agent-download.png)
-
-![Agent install](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A03-agent-install.png)
-
-![Agent running](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A04-agent-running.png)
-
-![Agent active](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A05-agent-active.png)
+<div align="center">
+  <img src="Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A01-agent-config.png" width="700">
+  <p><em>Agent configuration in the dashboard</em></p>
+  <img src="Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A02-agent-download.png" width="700">
+  <p><em>Agent package download on Kali</em></p>
+  <img src="Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A03-agent-install.png" width="700">
+  <p><em>Agent installation</em></p>
+  <img src="Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A04-agent-running.png" width="700">
+  <p><em>Agent service running</em></p>
+  <img src="Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A05-agent-active.png" width="700">
+  <p><em>kali-agent showing ACTIVE in Endpoints</em></p>
+</div>
 
 ---
 
-### Phase 5 — FIM Configuration
+### Phase 5 - FIM Configuration
 
 Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
 
@@ -225,9 +223,12 @@ Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
 <directories check_all="yes" realtime="yes">/home/kali/test</directories>
 ```
 
-![ossec.conf FIM](Lab%20Screenshots/04-fim-config/04-fim-config%3A01-ossec-conf.png)
-
-![FIM realtime](Lab%20Screenshots/04-fim-config/04-fim-config%3A02-fim-realtime.png)
+<div align="center">
+  <img src="Lab%20Screenshots/04-fim-config/04-fim-config%3A01-ossec-conf.png" width="700">
+  <p><em>ossec.conf FIM configuration</em></p>
+  <img src="Lab%20Screenshots/04-fim-config/04-fim-config%3A02-fim-realtime.png" width="700">
+  <p><em>Realtime monitoring enabled</em></p>
+</div>
 
 ---
 
@@ -244,10 +245,7 @@ Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
 
 ### File Integrity Monitoring
 
-**Alert pipeline:**
-Agent → wazuh-analysisd → alerts.json → wazuh-indexer → dashboard
-
-Each alert captured: file path, event type, MD5/SHA1/SHA256 hashes, permissions, agent ID.
+**Alert pipeline:** Agent → wazuh-analysisd → alerts.json → wazuh-indexer → dashboard. Each alert captured the file path, event type, MD5/SHA1/SHA256 hashes, permissions, and agent ID.
 
 ---
 
@@ -267,13 +265,16 @@ mv ~/test/backdoor.sh ~/test/system_update.sh
 rm ~/test/system_update.sh
 ```
 
-File creation, permission change, rename, deletion, every action detected in realtime.
+File creation, permission change, rename, and deletion, every action detected in realtime.
 
-![FIM attack commands](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A01-fim-attack-commands.png)
-
-![FIM alert json with hashes](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A02-fim-alert-json-hashes.png)
-
-![FIM dashboard 4 hits](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A03-fim-dashboard-4hits.png)
+<div align="center">
+  <img src="Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A01-fim-attack-commands.png" width="700">
+  <p><em>Attack simulation commands</em></p>
+  <img src="Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A02-fim-alert-json-hashes.png" width="700">
+  <p><em>FIM alert in alerts.json with full hash capture</em></p>
+  <img src="Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A03-fim-dashboard-4hits.png" width="700">
+  <p><em>FIM alerts in the dashboard</em></p>
+</div>
 
 ---
 
@@ -297,15 +298,18 @@ Wazuh detected the attack across multiple rule levels:
 
 **The defence worked:** Ubuntu's SSH connection limits kicked in and the attack stalled. Hydra reported `all children were disabled due too many connection errors` and `0 valid password found`. The attack failed and was fully logged.
 
-![SSH fail events](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A01-ssh-fail-events.png)
-
-![SSH non-existent user](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A02-ssh-nonexistent-user.png)
-
-![Rockyou wordlist](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A07-rockyou-wordlist.png)
-
-![Hydra running](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A08-hydra-running.png)
-
-![Hydra blocked](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A09-hydra-blocked.png)
+<div align="center">
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A01-ssh-fail-events.png" width="700">
+  <p><em>SSH authentication failure events</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A02-ssh-nonexistent-user.png" width="700">
+  <p><em>Login attempts on non-existent users</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A07-rockyou-wordlist.png" width="700">
+  <p><em>Preparing the rockyou wordlist</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A08-hydra-running.png" width="700">
+  <p><em>Hydra running against Ubuntu SSH</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A09-hydra-blocked.png" width="700">
+  <p><em>Hydra blocked, 0 passwords found</em></p>
+</div>
 
 ---
 
@@ -320,9 +324,12 @@ nmap -sV 192.168.50.200       # Service/version scan
 
 The service scan exposed open ports on the manager: SSH (22), HTTPS (443), and Apache (8080).
 
-![Nmap host discovery](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A05-nmap-host-discovery.png)
-
-![Nmap service scan](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A06-nmap-service-scan.png)
+<div align="center">
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A05-nmap-host.png" width="700">
+  <p><em>Nmap host discovery, 60 live hosts</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A06-nmap-service-scan.png" width="700">
+  <p><em>Nmap service and version scan</em></p>
+</div>
 
 ---
 
@@ -341,9 +348,12 @@ Multiple high-severity authentication alerts fired in a short window from a sing
 5. Confirm whether any attempt succeeded (it did not)
 6. Determine response, connection throttling already mitigated the attack
 
-![MITRE credential access](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A03-mitre-credential-access.png)
-
-![MITRE password guessing](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A04-mitre-password-guessing.png)
+<div align="center">
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A03-mitre-credential-access.png" width="700">
+  <p><em>MITRE Credential Access mapping</em></p>
+  <img src="Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A04-mitre-password-guessing.png" width="700">
+  <p><em>T1110.001 Password Guessing technique detail</em></p>
+</div>
 
 ### Outcome
 
@@ -372,19 +382,22 @@ sudo chown wazuh:wazuh /var/ossec/queue/vd_updater
 sudo systemctl start wazuh-manager
 ```
 
-![Disk full diagnosis](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A01-disk-full-diagnosis.png)
-
-![Disk recovery](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A02-disk-recovery.png)
-
-![Cleanup continued](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A03-cleanup-continued.png)
-
-![Manager restored](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A04-manager-restored.png)
-
-![Vuln detection disabled](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A05-vuln-detection-disabled.png)
+<div align="center">
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A01-disk-full-diagnosis.png" width="700">
+  <p><em>Disk at 100%, diagnosing the cause</em></p>
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A02-disk-recovery.png" width="700">
+  <p><em>Clearing the CVE feed directory</em></p>
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A03-cleanup-continued.png" width="700">
+  <p><em>Cleanup continued</em></p>
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A04-manager-restored.png" width="700">
+  <p><em>Manager restored and running</em></p>
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A05-vuln-detection-disabled.png" width="700">
+  <p><em>Vulnerability detection disabled to prevent recurrence</em></p>
+</div>
 
 ---
 
-### 📦 War Story 2 — LVM using only half its allocated space
+### 📦 War Story 2 - LVM using only half its allocated space
 
 ```bash
 sudo vgs
@@ -394,13 +407,16 @@ sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
 # Result: 56G  23G  32G  42%
 ```
 
-![LVM expanded](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A06-lvm-expanded-56gb.png)
-
-![Indexer health green](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A07-indexer-health-green.png)
+<div align="center">
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A06-lvm-expanded-56gb.png" width="700">
+  <p><em>LVM extended from 28GB to 56GB</em></p>
+  <img src="Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A07-indexer-health-green.png" width="700">
+  <p><em>Indexer health back to green</em></p>
+</div>
 
 ---
 
-### 🔍 War Story 3 — FIM alerts invisible in dashboard
+### 🔍 War Story 3 - FIM alerts invisible in dashboard
 
 Searched everywhere on the agent. Nothing appeared. The mistake: **agents don't generate alerts, managers do.**
 
@@ -429,13 +445,15 @@ Six techniques were detected and mapped automatically across all three attack ty
 | Privilege Escalation | T1548 | Sudo and Sudo Caching | sudo commands on Kali |
 | Defense Evasion | T1548 | Abuse Elevation Control | sudo escalation |
 
-![MITRE full dashboard](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A09-mitre-full-dashboard.png)
-
-![Dashboard 197 alerts](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A06-dashboard-197-alerts.png)
-
-![MITRE events with techniques](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A05-mitre-events-techniques.png)
-
-![Kali agent MITRE and SCA](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A02-kali-agent-mitre-sca.png)
+<div align="center">
+  <img src="Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A09-mitre-full-dashboard.png" width="700">
+  <p><em>Full MITRE ATT&CK dashboard</em></p>
+  <img src="Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A06-dashboard-197-alerts.png" width="700">
+  <p><em>Threat Hunting dashboard, 197 alerts</em></p>
+  <img src="Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A05-mitre-events-techniques.png" width="700">
+  <p><em>MITRE events with technique IDs</em></p>
+  
+</div>
 
 ---
 
@@ -460,7 +478,7 @@ A full breakdown is available in [LESSONS-LEARNED.md](LESSONS-LEARNED.md).
 
 <div align="center">
 
-**Samruddhi (Sam) Patil** — Aspiring SOC Analyst
+**Samruddhi Patil** — Aspiring SOC/Cyber Analyst
 
 I am an aspiring SOC Analyst with a strong interest in threat detection, SIEM engineering, incident response, and blue team operations. This project was built to gain hands-on experience deploying, troubleshooting, attacking, and defending enterprise security infrastructure in a controlled lab environment.
 
