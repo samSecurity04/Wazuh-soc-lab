@@ -451,7 +451,6 @@ Six techniques were detected and mapped automatically across all three attack ty
   <img src="Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A06-dashboard-197-alerts.png" width="700">
   <p><em>Threat Hunting dashboard, 197 alerts</em></p>
   <img src="Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A05-mitre-events-techniques.png" width="700">
-  <p><em>MITRE events with technique IDs</em></p>
   
 </div>
 
