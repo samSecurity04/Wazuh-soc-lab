@@ -2,7 +2,7 @@
 
 # 🛡️ Wazuh SOC Home Lab
 
-### *Most home labs stop when the dashboard loads. This one starts there.*
+### *Because reading about SIEM is not the same as breaking one and fixing it.*
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-v4.12.0-005571?style=for-the-badge&logo=wazuh&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-26.04_LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
@@ -14,30 +14,76 @@
 
 <br/>
 
-> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon.
-> Every failure documented. Every fix explained.
+> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon — documenting every failure along the way.
+>
+> **Most home labs stop when the dashboard loads. This one starts there.**
+
+<br/>
+
+---
 
 </div>
+
+## 🚨 What Makes This Lab Different?
+
+Most Wazuh projects stop after installation.
+
+This project documents the complete lifecycle of a SOC platform:
+
+- Deployment
+- Configuration
+- Detection Validation
+- Attack Simulation
+- Failure Recovery
+- Performance Troubleshooting
+
+### Highlights
+
+✅ Apple Silicon (ARM64) deployment
+
+✅ Live endpoint monitoring
+
+✅ File Integrity Monitoring validation
+
+✅ MITRE ATT&CK mapping
+
+✅ Attack simulation testing
+
+✅ Real-world troubleshooting
+
+✅ End-to-end alert verification
+
+❌ Not a pre-built VM
+
+❌ Not a copy-paste Docker deployment
+
+The goal was not simply to install Wazuh.
+
+The goal was to understand how a SIEM behaves when things break.
 
 ---
 
 ## 📌 Table of Contents
+
 - [What I Built](#-what-i-built)
+- [Lab Statistics](#-lab-statistics)
 - [Architecture](#️-architecture)
 - [Installation & Setup](#-installation--setup)
 - [Key Detections](#-key-detections)
 - [Attack Simulation](#-attack-simulation)
+- [SOC Analyst Investigation Example](#️-soc-analyst-investigation-example)
 - [Troubleshooting War Stories](#-troubleshooting-war-stories)
 - [MITRE ATT&CK Mapping](#-mitre-attck-mapping)
 - [What I Learned](#-what-i-learned)
+- [Skills Demonstrated](#-skills-demonstrated)
 
 ---
 
 ## 🎯 What I Built
 
-❌ Not a pre-built VM &nbsp;&nbsp; ❌ Not a Docker Compose file &nbsp;&nbsp; ❌ Not a tutorial follow-along
+Built from a clean Ubuntu Server installation and configured entirely by hand.
 
-Built from a clean Ubuntu Server installation, configured entirely by hand, broken multiple times, and fixed each time.
+The environment was deployed, monitored, broken, repaired, and validated to understand how a real SOC platform behaves beyond the installation stage.
 
 | Capability | Status |
 |---|---|
@@ -49,12 +95,20 @@ Built from a clean Ubuntu Server installation, configured entirely by hand, brok
 | Disk failure diagnosis and recovery | ✅ Complete |
 | MITRE ATT&CK mapping verified in dashboard | ✅ Complete |
 
+---
+
+## 📊 Lab Statistics
+
 | Metric | Value |
 |---|---|
-| VMs | 2 |
+| Virtual Machines | 2 |
+| Operating Systems | Ubuntu Server 26.04 + Kali Linux 2026.1 |
+| SIEM Platform | Wazuh v4.12.0 |
+| Endpoints Monitored | 1 |
 | Security Events Generated | 200+ |
-| Major Failures Diagnosed & Fixed | 3 |
-| Alert Pipeline | Fully Validated |
+| Major Failures Diagnosed | 3 |
+| Detection Categories Tested | 4 |
+| Alert Pipeline Validation | Complete |
 
 ---
 
@@ -74,14 +128,19 @@ Built from a clean Ubuntu Server installation, configured entirely by hand, brok
 │  cyber-nova    │   │   kali-agent    │
 │ Ubuntu 26.04   │   │ Kali Linux      │
 │ 192.168.50.200 │◄──│ 192.168.50.191  │
+│                │   │                 │
 │ Wazuh Manager  │   │ Wazuh Agent     │
 │ Wazuh Indexer  │   │ v4.12.0         │
-│ Wazuh Dashboard│   │ FIM, Auth,      │
-│ (port 443)     │   │ Sudo, PAM       │
+│ Wazuh Dashboard│   │                 │
+│ (port 443)     │   │ Sends: FIM,     │
+│                │   │ Auth, Sudo,     │
+│                │   │ PAM events      │
 └────────────────┘   └─────────────────┘
 ```
 
 </div>
+
+**Network:** Bridged networking — both VMs on the same subnet, bidirectional ping verified before deployment.
 
 ---
 
@@ -89,52 +148,82 @@ Built from a clean Ubuntu Server installation, configured entirely by hand, brok
 
 ### Phase 1 — Network Verification
 
+Before touching Wazuh, I verified bidirectional connectivity between both VMs.
+
 > 📸 Screenshot: Kali pinging Ubuntu (192.168.50.200)
 
 > 📸 Screenshot: Ubuntu pinging Kali (192.168.50.191)
 
+---
+
 ### Phase 2 — Wazuh Stack Installation
+
+SSHed into Ubuntu from the Mac terminal and ran the official Wazuh install script with the `-i` flag to bypass ARM64 hardware checks.
 
 ```bash
 curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh
 sudo bash ./wazuh-install.sh -a -i
 ```
-**Note:** The `-i` flag bypasses the ARM64 hardware check. Required on Apple Silicon.
 
-> 📸 Screenshot: Full successful install log
+**ARM64 Challenge:** The standard install script flags Apple Silicon as unsupported hardware. The `-i` flag ignores this check and the install runs perfectly on aarch64.
+
+> 📸 Screenshot: Full successful install log — indexer, manager, filebeat, dashboard all green
+
+---
 
 ### Phase 3 — Port Conflict Resolution
 
-SafeLine WAF Docker containers from my previous lab were holding port 443. Stopped them first.
+The install initially failed because SafeLine WAF Docker containers from my previous lab were holding port 443.
 
 ```bash
 sudo sh -c 'docker stop $(docker ps -q)'
 sudo bash ./wazuh-install.sh -a -i
 ```
 
-> 📸 Screenshot: Port conflict error + fix + successful reinstall
+> 📸 Screenshot: Port 443 conflict error + Docker containers stopped + successful reinstall
 
-### Phase 4 — Dashboard & Agent
+---
 
-> 📸 Screenshot: Wazuh login page from Kali browser
+### Phase 4 — Wazuh Dashboard Access
+
+Accessed the dashboard from Kali's browser at `https://192.168.50.200` using credentials generated during install.
+
+> 📸 Screenshot: Wazuh login page
 
 > 📸 Screenshot: Wazuh dashboard overview
+
+---
+
+### Phase 5 — Agent Deployment
+
+Deployed the Wazuh agent on Kali Linux using the dashboard's guided installer — selected Linux DEB aarch64, set server address to 192.168.50.200, named the agent `kali-agent`.
 
 ```bash
 wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.12.0-1_arm64.deb \
 && sudo WAZUH_MANAGER='192.168.50.200' WAZUH_AGENT_NAME='kali-agent' dpkg -i ./wazuh-agent_4.12.0-1_arm64.deb
-sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo systemctl start wazuh-agent
+
+sudo systemctl daemon-reload
+sudo systemctl enable wazuh-agent
+sudo systemctl start wazuh-agent
 ```
 
-> 📸 Screenshot: kali-agent ACTIVE in Endpoints dashboard
+> 📸 Screenshot: Agent config — DEB aarch64 selected, server address, agent name
 
-### Phase 5 — FIM Configuration
+> 📸 Screenshot: Agent installed and service active (running)
+
+> 📸 Screenshot: Endpoints dashboard — kali-agent showing ACTIVE
+
+---
+
+### Phase 6 — FIM Configuration
+
+Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
 
 ```xml
 <directories check_all="yes" realtime="yes">/home/kali/test</directories>
 ```
 
-> 📸 Screenshot: ossec.conf with FIM realtime config
+> 📸 Screenshot: ossec.conf FIM config with realtime="yes"
 
 ---
 
@@ -142,27 +231,37 @@ sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo system
 
 ### Authentication Events
 
-| Rule ID | Description | Level |
+| Rule ID | Description | Severity |
 |---|---|---|
-| 5501 | PAM Login session opened | 3 |
-| 5502 | PAM Login session closed | 3 |
-| 5402 | Successful sudo to ROOT | 3 |
-| 5403 | First time user executed sudo | 4 |
+| 5501 | PAM Login session opened | Level 3 |
+| 5502 | PAM Login session closed | Level 3 |
+| 5402 | Successful sudo to ROOT executed | Level 3 |
+| 5403 | First time user executed sudo | Level 4 |
 
-> 📸 Screenshot: 219 live PAM and sudo events in Threat Hunting
+> 📸 Screenshot: Live PAM and sudo events in Threat Hunting — 219 hits
+
+---
 
 ### File Integrity Monitoring
 
 **Alert pipeline:**
-Agent → wazuh-analysisd → alerts.json → wazuh-indexer → dashboard
 
-Each alert captured: file path, event type, MD5/SHA1/SHA256 hashes, permissions, agent ID.
+1. Agent detects file change via wazuh-syscheckd
+2. Event sent to manager via TCP port 1514
+3. Manager processes via wazuh-analysisd
+4. Written to `/var/ossec/logs/alerts/alerts.json`
+5. Indexed by wazuh-indexer
+6. Visible in Threat Hunting dashboard
+
+Each FIM alert captured: file path, event type, MD5/SHA1/SHA256 hashes, permissions, ownership, timestamps, agent ID.
 
 > 📸 Screenshot: alerts.json FIM syscheck entry with full hash capture
 
-> 📸 Screenshot: location:syscheck in dashboard — 4 hits (file added + checksum changed)
+> 📸 Screenshot: location:syscheck — 4 hits (File added + Integrity checksum changed)
 
 > 📸 Screenshot: Threat Hunting — 209 total alerts, MITRE ATT&CK donut chart
+
+> 📸 Screenshot: kali-agent detail — MITRE tactics, SCA scan, FIM recent events
 
 ---
 
@@ -178,42 +277,89 @@ rm ~/test/system_update.sh
 
 File creation, permission change, rename, deletion — every action detected and alerted in realtime.
 
-> 📸 Screenshot: Attack simulation commands + Wazuh alerts firing
+> 📸 Screenshot: Attack simulation commands in terminal
+
+---
+
+## 🕵️ SOC Analyst Investigation Example
+
+### Scenario
+
+A suspicious executable appeared inside a monitored directory on the Kali endpoint.
+
+### Detection
+
+Wazuh FIM generated alerts for: file creation, permission modification, rename, deletion.
+
+### Investigation Process
+
+1. Verify alert source and affected endpoint
+2. Review file hashes and metadata
+3. Confirm ownership and permissions
+4. Correlate events with user activity
+5. Validate MITRE ATT&CK mapping
+6. Determine whether activity is legitimate or malicious
+
+### Outcome
+
+Controlled simulation confirmed. Detection coverage functioning correctly. Full forensic metadata captured including MD5, SHA1, SHA256 hashes.
 
 ---
 
 ## 🔥 Troubleshooting War Stories
 
-### 💾 War Story 1 — Disk hit 100%, manager died
+This is where most lab writeups stop. Mine doesn't.
 
+---
+
+### 💾 War Story 1 — Disk hit 100% and the manager died
+
+**Diagnosis:**
 ```bash
-df -h /        # 28G 28G 0 100%
-sudo du -h --max-depth=2 /var/ossec | sort -h | tail -5
+df -h /
+# 28G 28G 0 100%
+sudo du -h --max-depth=2 /var/ossec | sort -h | tail -15
 # 6.4G /var/ossec/queue/vd_updater  ← culprit
 ```
 
-CVE scanner silently filled the disk. Fixed by deleting vd_updater and disabling vuln-detection:
-
+**Fix:**
+```bash
+sudo systemctl stop wazuh-manager
+sudo rm -rf /var/ossec/queue/vd_updater
+sudo mkdir -p /var/ossec/queue/vd_updater
+sudo chown wazuh:wazuh /var/ossec/queue/vd_updater
+sudo systemctl start wazuh-manager
+```
 ```xml
 <vulnerability-detection><enabled>no</enabled></vulnerability-detection>
 ```
 
-> 📸 Screenshot: Disk 100% → diagnosed → recovered
+> 📸 Screenshot: Disk 100% → diagnosed → recovered to 82%
 
-### 📦 War Story 2 — LVM using half its space
+---
 
+### 📦 War Story 2 — LVM using only half its allocated space
+
+**Diagnosis:**
 ```bash
-sudo vgs    # VFree: 28.47g available but unused
+sudo vgs
+# ubuntu-vg  56.95g  28.47g available but unused
+```
+
+**Fix:**
+```bash
 sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
 sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
-df -h /     # 56G  23G  32G  42%
+# Result: 56G  23G  32G  42%
 ```
 
 > 📸 Screenshot: Before and after — 28GB → 56GB
 
+---
+
 ### 🔍 War Story 3 — FIM alerts invisible in dashboard
 
-Searched everywhere on the agent. Nothing. The mistake: **agents don't generate alerts — managers do.**
+Searched everywhere on the agent. Nothing appeared. The mistake: **agents don't generate alerts — managers do.**
 
 ```bash
 # On UBUNTU (manager), not Kali:
@@ -229,23 +375,24 @@ FIM database was corrupted. Rebuilt wazuh-db, restarted pipeline. Alerts appeare
 
 ## 🎯 MITRE ATT&CK Mapping
 
-| Tactic | Technique | Triggered By |
-|---|---|---|
-| Privilege Escalation | T1548 — Sudo Caching | sudo on Kali |
-| Defense Evasion | T1548 — Elevation Control | sudo escalation |
-| Initial Access | T1078 — Valid Accounts | PAM auth events |
-| Persistence | T1078 — Valid Accounts | Session events |
+| Tactic | Technique ID | Technique Name | Triggered By |
+|---|---|---|---|
+| Privilege Escalation | T1548 | Sudo and Sudo Caching | sudo commands on Kali |
+| Defense Evasion | T1548 | Abuse Elevation Control | sudo escalation |
+| Initial Access | T1078 | Valid Accounts | PAM authentication events |
+| Persistence | T1078 | Valid Accounts | Session open/close events |
 
-> 📸 Screenshot: MITRE ATT&CK panel in kali-agent dashboard
+> 📸 Screenshot: kali-agent MITRE ATT&CK panel
 
 ---
 
 ## 💡 What I Learned
 
-- The Wazuh alert pipeline end to end — by breaking each stage and fixing it
+- How the Wazuh alert pipeline works end to end — by breaking each stage and fixing it
 - Linux disk management under pressure — LVM extension, live filesystem resize
 - Agents watch and send. Managers process and alert. Never debug on the wrong machine.
 - Raw logs (`ossec.log`, `alerts.json`) tell the truth when the UI shows nothing
+- Real infrastructure breaks in unexpected ways that no tutorial prepares you for
 
 ---
 
