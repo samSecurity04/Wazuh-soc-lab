@@ -168,7 +168,7 @@ sudo bash ./wazuh-install.sh -a -i
 
 **ARM64 Challenge:** The standard install script flags Apple Silicon as unsupported hardware. The `-i` flag bypasses this check and the install runs perfectly on aarch64.
 
-![SSH install start](Lab%20Screenshots/02-installation/01-ssh-install-start.png)
+![SSH install start](Lab%20Screenshots/02-installation/02-installation%3A01-ssh-install-start.png)
 
 **Port conflict:** The install initially failed because SafeLine WAF Docker containers from my previous lab were holding port 443.
 
@@ -177,11 +177,11 @@ sudo sh -c 'docker stop $(docker ps -q)'
 sudo bash ./wazuh-install.sh -a -i
 ```
 
-![Port conflict and Docker](Lab%20Screenshots/02-installation/02-port-conflict-docker.png)
+![Port conflict and Docker](Lab%20Screenshots/02-installation/02-installation%3A02-port-conflict-docker.png)
 
-![Install with -i flag](Lab%20Screenshots/02-installation/03-install-i-flag.png)
+![Install with -i flag](Lab%20Screenshots/02-installation/02-installation%3A03-install-i-flag.png)
 
-![Install success](Lab%20Screenshots/02-installation/04-install-success.png)
+![Install success](Lab%20Screenshots/02-installation/02-installation%3A04-install-success.png)
 
 ---
 
@@ -189,9 +189,9 @@ sudo bash ./wazuh-install.sh -a -i
 
 Accessed the dashboard from Kali's browser at `https://192.168.50.200` using credentials generated during install.
 
-![Wazuh login](Lab%20Screenshots/02-installation/05-wazuh-login.png)
+![Wazuh login](Lab%20Screenshots/02-installation/02-installation%3A05-wazuh-login.png)
 
-![Dashboard overview](Lab%20Screenshots/02-installation/06-dashboard-overview.png)
+![Dashboard overview](Lab%20Screenshots/02-installation/02-installation%3A06-dashboard-overview.png)
 
 ---
 
@@ -205,15 +205,15 @@ wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.12
 sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo systemctl start wazuh-agent
 ```
 
-![Agent config](Lab%20Screenshots/03-agent-deployment/01-agent-config.png)
+![Agent config](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A01-agent-config.png)
 
-![Agent download](Lab%20Screenshots/03-agent-deployment/02-agent-download.png)
+![Agent download](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A02-agent-download.png)
 
-![Agent install](Lab%20Screenshots/03-agent-deployment/03-agent-install.png)
+![Agent install](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A03-agent-install.png)
 
-![Agent running](Lab%20Screenshots/03-agent-deployment/04-agent-running.png)
+![Agent running](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A04-agent-running.png)
 
-![Agent active](Lab%20Screenshots/03-agent-deployment/05-agent-active.png)
+![Agent active](Lab%20Screenshots/03-agent-deployment/03-agent-deployment%3A05-agent-active.png)
 
 ---
 
@@ -225,9 +225,9 @@ Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
 <directories check_all="yes" realtime="yes">/home/kali/test</directories>
 ```
 
-![ossec.conf FIM](Lab%20Screenshots/04-fim-config/01-ossec-conf.png)
+![ossec.conf FIM](Lab%20Screenshots/04-fim-config/04-fim-config%3A01-ossec-conf.png)
 
-![FIM realtime](Lab%20Screenshots/04-fim-config/02-fim-realtime.png)
+![FIM realtime](Lab%20Screenshots/04-fim-config/04-fim-config%3A02-fim-realtime.png)
 
 ---
 
@@ -269,11 +269,11 @@ rm ~/test/system_update.sh
 
 File creation, permission change, rename, deletion, every action detected in realtime.
 
-![FIM attack commands](Lab%20Screenshots/05-attack-simulation/01-fim-attack-commands.png)
+![FIM attack commands](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A01-fim-attack-commands.png)
 
-![FIM alert json with hashes](Lab%20Screenshots/05-attack-simulation/02-fim-alert-json-hashes.png)
+![FIM alert json with hashes](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A02-fim-alert-json-hashes.png)
 
-![FIM dashboard 4 hits](Lab%20Screenshots/05-attack-simulation/03-fim-dashboard-4hits.png)
+![FIM dashboard 4 hits](Lab%20Screenshots/05-attack-simulation/05-attack-simulation%3A03-fim-dashboard-4hits.png)
 
 ---
 
@@ -297,15 +297,15 @@ Wazuh detected the attack across multiple rule levels:
 
 **The defence worked:** Ubuntu's SSH connection limits kicked in and the attack stalled. Hydra reported `all children were disabled due too many connection errors` and `0 valid password found`. The attack failed and was fully logged.
 
-![SSH fail events](Lab%20Screenshots/06-bruteforce-recon/01-ssh-fail-events.png)
+![SSH fail events](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A01-ssh-fail-events.png)
 
-![SSH non-existent user](Lab%20Screenshots/06-bruteforce-recon/02-ssh-nonexistent-user.png)
+![SSH non-existent user](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A02-ssh-nonexistent-user.png)
 
-![Rockyou wordlist](Lab%20Screenshots/06-bruteforce-recon/07-rockyou-wordlist.png)
+![Rockyou wordlist](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A07-rockyou-wordlist.png)
 
-![Hydra running](Lab%20Screenshots/06-bruteforce-recon/08-hydra-running.png)
+![Hydra running](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A08-hydra-running.png)
 
-![Hydra blocked](Lab%20Screenshots/06-bruteforce-recon/09-hydra-blocked.png)
+![Hydra blocked](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A09-hydra-blocked.png)
 
 ---
 
@@ -320,9 +320,9 @@ nmap -sV 192.168.50.200       # Service/version scan
 
 The service scan exposed open ports on the manager: SSH (22), HTTPS (443), and Apache (8080).
 
-![Nmap host discovery](Lab%20Screenshots/06-bruteforce-recon/05-nmap-host-discovery.png)
+![Nmap host discovery](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A05-nmap-host-discovery.png)
 
-![Nmap service scan](Lab%20Screenshots/06-bruteforce-recon/06-nmap-service-scan.png)
+![Nmap service scan](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A06-nmap-service-scan.png)
 
 ---
 
@@ -341,9 +341,9 @@ Multiple high-severity authentication alerts fired in a short window from a sing
 5. Confirm whether any attempt succeeded (it did not)
 6. Determine response, connection throttling already mitigated the attack
 
-![MITRE credential access](Lab%20Screenshots/06-bruteforce-recon/03-mitre-credential-access.png)
+![MITRE credential access](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A03-mitre-credential-access.png)
 
-![MITRE password guessing](Lab%20Screenshots/06-bruteforce-recon/04-mitre-password-guessing.png)
+![MITRE password guessing](Lab%20Screenshots/06-bruteforce-recon/06-bruteforce-recon%3A04-mitre-password-guessing.png)
 
 ### Outcome
 
@@ -372,15 +372,15 @@ sudo chown wazuh:wazuh /var/ossec/queue/vd_updater
 sudo systemctl start wazuh-manager
 ```
 
-![Disk full diagnosis](Lab%20Screenshots/07-troubleshooting/01-disk-full-diagnosis.png)
+![Disk full diagnosis](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A01-disk-full-diagnosis.png)
 
-![Disk recovery](Lab%20Screenshots/07-troubleshooting/02-disk-recovery.png)
+![Disk recovery](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A02-disk-recovery.png)
 
-![Cleanup continued](Lab%20Screenshots/07-troubleshooting/03-cleanup-continued.png)
+![Cleanup continued](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A03-cleanup-continued.png)
 
-![Manager restored](Lab%20Screenshots/07-troubleshooting/04-manager-restored.png)
+![Manager restored](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A04-manager-restored.png)
 
-![Vuln detection disabled](Lab%20Screenshots/07-troubleshooting/05-vuln-detection-disabled.png)
+![Vuln detection disabled](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A05-vuln-detection-disabled.png)
 
 ---
 
@@ -394,9 +394,9 @@ sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
 # Result: 56G  23G  32G  42%
 ```
 
-![LVM expanded](Lab%20Screenshots/07-troubleshooting/06-lvm-expanded-56gb.png)
+![LVM expanded](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A06-lvm-expanded-56gb.png)
 
-![Indexer health green](Lab%20Screenshots/07-troubleshooting/07-indexer-health-green.png)
+![Indexer health green](Lab%20Screenshots/07-troubleshooting/07-troubleshooting%3A07-indexer-health-green.png)
 
 ---
 
@@ -429,13 +429,13 @@ Six techniques were detected and mapped automatically across all three attack ty
 | Privilege Escalation | T1548 | Sudo and Sudo Caching | sudo commands on Kali |
 | Defense Evasion | T1548 | Abuse Elevation Control | sudo escalation |
 
-![MITRE full dashboard](Lab%20Screenshots/08-mitre-dashboard/09-mitre-full-dashboard.png)
+![MITRE full dashboard](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A09-mitre-full-dashboard.png)
 
-![Dashboard 197 alerts](Lab%20Screenshots/08-mitre-dashboard/06-dashboard-197-alerts.png)
+![Dashboard 197 alerts](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A06-dashboard-197-alerts.png)
 
-![MITRE events with techniques](Lab%20Screenshots/08-mitre-dashboard/05-mitre-events-techniques.png)
+![MITRE events with techniques](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A05-mitre-events-techniques.png)
 
-![Kali agent MITRE and SCA](Lab%20Screenshots/08-mitre-dashboard/02-kali-agent-mitre-sca.png)
+![Kali agent MITRE and SCA](Lab%20Screenshots/08-mitre-dashboard/08-mitre-dashboard%3A02-kali-agent-mitre-sca.png)
 
 ---
 
