@@ -14,7 +14,7 @@
 
 <br/>
 
-> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon; documenting every failure along the way.
+> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon, documenting every failure along the way.
 >
 > **Most home labs stop when the dashboard loads. This one starts there.**
 
@@ -57,9 +57,11 @@ This project documents the complete lifecycle of a SOC platform:
 
 ❌ Not a copy-paste Docker deployment
 
+❌ Not a tutorial follow-along
+
 The goal was not simply to install Wazuh.
 
-The goal was to understand how a SIEM behaves when things break — and when it is attacked.
+The goal was to understand how a SIEM behaves when things break, and when it is attacked.
 
 ---
 
@@ -141,7 +143,7 @@ The environment was deployed, monitored, broken, repaired, attacked, and validat
 
 </div>
 
-**Network:** Bridged networking — both VMs on the same subnet, bidirectional ping verified before deployment.
+**Network:** Bridged networking, both VMs on the same subnet, bidirectional ping verified before deployment.
 
 ---
 
@@ -149,9 +151,11 @@ The environment was deployed, monitored, broken, repaired, attacked, and validat
 
 ### Phase 1 — Network Verification
 
-> 📸 Screenshot: Kali pinging Ubuntu (192.168.50.200)
+Before touching Wazuh, I verified bidirectional connectivity between both VMs.
 
-> 📸 Screenshot: Ubuntu pinging Kali (192.168.50.191)
+![Kali pinging Ubuntu](Lab%20Screenshots/01-setup/01-kali-ping-ubuntu.png)
+
+![Ubuntu pinging Kali](Lab%20Screenshots/01-setup/02-ubuntu-ping-kali.png)
 
 ---
 
@@ -164,24 +168,36 @@ sudo bash ./wazuh-install.sh -a -i
 
 **ARM64 Challenge:** The standard install script flags Apple Silicon as unsupported hardware. The `-i` flag bypasses this check and the install runs perfectly on aarch64.
 
-> 📸 Screenshot: Full successful install log
+![SSH install start](Lab%20Screenshots/02-installation/01-ssh-install-start.png)
 
----
-
-### Phase 3 — Port Conflict Resolution
-
-The install initially failed because SafeLine WAF Docker containers from my previous lab were holding port 443.
+**Port conflict:** The install initially failed because SafeLine WAF Docker containers from my previous lab were holding port 443.
 
 ```bash
 sudo sh -c 'docker stop $(docker ps -q)'
 sudo bash ./wazuh-install.sh -a -i
 ```
 
-> 📸 Screenshot: Port 443 conflict + fix + successful reinstall
+![Port conflict and Docker](Lab%20Screenshots/02-installation/02-port-conflict-docker.png)
+
+![Install with -i flag](Lab%20Screenshots/02-installation/03-install-i-flag.png)
+
+![Install success](Lab%20Screenshots/02-installation/04-install-success.png)
 
 ---
 
-### Phase 4 — Dashboard & Agent Deployment
+### Phase 3 — Dashboard Access
+
+Accessed the dashboard from Kali's browser at `https://192.168.50.200` using credentials generated during install.
+
+![Wazuh login](Lab%20Screenshots/02-installation/05-wazuh-login.png)
+
+![Dashboard overview](Lab%20Screenshots/02-installation/06-dashboard-overview.png)
+
+---
+
+### Phase 4 — Agent Deployment
+
+Deployed the Wazuh agent on Kali using the dashboard's guided installer, selecting the Linux DEB aarch64 package.
 
 ```bash
 wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.12.0-1_arm64.deb \
@@ -189,19 +205,29 @@ wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.12
 sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo systemctl start wazuh-agent
 ```
 
-> 📸 Screenshot: Wazuh login page
+![Agent config](Lab%20Screenshots/03-agent-deployment/01-agent-config.png)
 
-> 📸 Screenshot: kali-agent ACTIVE in Endpoints dashboard
+![Agent download](Lab%20Screenshots/03-agent-deployment/02-agent-download.png)
+
+![Agent install](Lab%20Screenshots/03-agent-deployment/03-agent-install.png)
+
+![Agent running](Lab%20Screenshots/03-agent-deployment/04-agent-running.png)
+
+![Agent active](Lab%20Screenshots/03-agent-deployment/05-agent-active.png)
 
 ---
 
 ### Phase 5 — FIM Configuration
 
+Edited the agent's `ossec.conf` to add realtime monitoring of `/home/kali/test`:
+
 ```xml
 <directories check_all="yes" realtime="yes">/home/kali/test</directories>
 ```
 
-> 📸 Screenshot: ossec.conf FIM config with realtime="yes"
+![ossec.conf FIM](Lab%20Screenshots/04-fim-config/01-ossec-conf.png)
+
+![FIM realtime](Lab%20Screenshots/04-fim-config/02-fim-realtime.png)
 
 ---
 
@@ -216,20 +242,12 @@ sudo systemctl daemon-reload && sudo systemctl enable wazuh-agent && sudo system
 | 5402 | Successful sudo to ROOT executed | 3 |
 | 5403 | First time user executed sudo | 4 |
 
-> 📸 Screenshot: Live PAM and sudo events in Threat Hunting
-
----
-
 ### File Integrity Monitoring
 
 **Alert pipeline:**
 Agent → wazuh-analysisd → alerts.json → wazuh-indexer → dashboard
 
 Each alert captured: file path, event type, MD5/SHA1/SHA256 hashes, permissions, agent ID.
-
-> 📸 Screenshot: alerts.json FIM syscheck entry with full hash capture
-
-> 📸 Screenshot: location:syscheck in dashboard — File added + checksum changed
 
 ---
 
@@ -249,9 +267,13 @@ mv ~/test/backdoor.sh ~/test/system_update.sh
 rm ~/test/system_update.sh
 ```
 
-File creation, permission change, rename, deletion — every action detected in realtime.
+File creation, permission change, rename, deletion, every action detected in realtime.
 
-> 📸 Screenshot: Attack simulation commands + FIM alerts firing
+![FIM attack commands](Lab%20Screenshots/05-attack-simulation/01-fim-attack-commands.png)
+
+![FIM alert json with hashes](Lab%20Screenshots/05-attack-simulation/02-fim-alert-json-hashes.png)
+
+![FIM dashboard 4 hits](Lab%20Screenshots/05-attack-simulation/03-fim-dashboard-4hits.png)
 
 ---
 
@@ -273,13 +295,17 @@ Wazuh detected the attack across multiple rule levels:
 | 5758 | Maximum authentication attempts exceeded | 8 |
 | 2502 | syslog: User missed the password more than one time | 10 |
 
-**The defence worked:** Ubuntu's SSH connection limits kicked in and the attack stalled — Hydra reported `all children were disabled due too many connection errors` and `0 valid password found`. The attack failed and was fully logged.
+**The defence worked:** Ubuntu's SSH connection limits kicked in and the attack stalled. Hydra reported `all children were disabled due too many connection errors` and `0 valid password found`. The attack failed and was fully logged.
 
-> 📸 Screenshot: Hydra running against Ubuntu SSH
+![SSH fail events](Lab%20Screenshots/06-bruteforce-recon/01-ssh-fail-events.png)
 
-> 📸 Screenshot: Hydra blocked — connection errors, 0 passwords found
+![SSH non-existent user](Lab%20Screenshots/06-bruteforce-recon/02-ssh-nonexistent-user.png)
 
-> 📸 Screenshot: Wazuh dashboard — 197 alerts, 136 auth failures
+![Rockyou wordlist](Lab%20Screenshots/06-bruteforce-recon/07-rockyou-wordlist.png)
+
+![Hydra running](Lab%20Screenshots/06-bruteforce-recon/08-hydra-running.png)
+
+![Hydra blocked](Lab%20Screenshots/06-bruteforce-recon/09-hydra-blocked.png)
 
 ---
 
@@ -288,15 +314,15 @@ Wazuh detected the attack across multiple rule levels:
 Simulated attacker reconnaissance with host discovery and service scanning:
 
 ```bash
-nmap -sn 192.168.50.0/24      # Host discovery — found 60 live hosts
+nmap -sn 192.168.50.0/24      # Host discovery, found 60 live hosts
 nmap -sV 192.168.50.200       # Service/version scan
 ```
 
-The service scan exposed open ports on the manager: SSH (22), HTTPS (443), and Apache (8080). Wazuh logged the resulting web server probe events.
+The service scan exposed open ports on the manager: SSH (22), HTTPS (443), and Apache (8080).
 
-> 📸 Screenshot: Nmap service scan results
+![Nmap host discovery](Lab%20Screenshots/06-bruteforce-recon/05-nmap-host-discovery.png)
 
-> 📸 Screenshot: Nmap host discovery — 60 hosts found
+![Nmap service scan](Lab%20Screenshots/06-bruteforce-recon/06-nmap-service-scan.png)
 
 ---
 
@@ -304,16 +330,20 @@ The service scan exposed open ports on the manager: SSH (22), HTTPS (443), and A
 
 ### Scenario
 
-Multiple high-severity authentication alerts fired in a short window from a single source — classic brute force signature.
+Multiple high-severity authentication alerts fired in a short window from a single source, a classic brute force signature.
 
 ### Investigation Process
 
 1. Verify alert source and affected endpoint
 2. Review rule IDs and severity levels (5712, 5758, 2502)
-3. Correlate timestamp clustering — many failures in seconds
+3. Correlate timestamp clustering, many failures in seconds
 4. Validate MITRE ATT&CK mapping (T1110 Brute Force, T1078 Valid Accounts)
 5. Confirm whether any attempt succeeded (it did not)
-6. Determine response — connection throttling already mitigated the attack
+6. Determine response, connection throttling already mitigated the attack
+
+![MITRE credential access](Lab%20Screenshots/06-bruteforce-recon/03-mitre-credential-access.png)
+
+![MITRE password guessing](Lab%20Screenshots/06-bruteforce-recon/04-mitre-password-guessing.png)
 
 ### Outcome
 
@@ -325,11 +355,8 @@ The activity was confirmed as a controlled Hydra brute force simulation. Detecti
 
 This is where most lab writeups stop. Mine doesn't.
 
----
-
 ### 💾 War Story 1 — Disk hit 100% and the manager died
 
-**Diagnosis:**
 ```bash
 df -h /
 # 28G 28G 0 100%
@@ -337,7 +364,6 @@ sudo du -h --max-depth=2 /var/ossec | sort -h | tail -15
 # 6.4G /var/ossec/queue/vd_updater  ← culprit
 ```
 
-**Fix:**
 ```bash
 sudo systemctl stop wazuh-manager
 sudo rm -rf /var/ossec/queue/vd_updater
@@ -345,36 +371,38 @@ sudo mkdir -p /var/ossec/queue/vd_updater
 sudo chown wazuh:wazuh /var/ossec/queue/vd_updater
 sudo systemctl start wazuh-manager
 ```
-```xml
-<vulnerability-detection><enabled>no</enabled></vulnerability-detection>
-```
 
-> 📸 Screenshot: Disk 100% → diagnosed → recovered to 82%
+![Disk full diagnosis](Lab%20Screenshots/07-troubleshooting/01-disk-full-diagnosis.png)
+
+![Disk recovery](Lab%20Screenshots/07-troubleshooting/02-disk-recovery.png)
+
+![Cleanup continued](Lab%20Screenshots/07-troubleshooting/03-cleanup-continued.png)
+
+![Manager restored](Lab%20Screenshots/07-troubleshooting/04-manager-restored.png)
+
+![Vuln detection disabled](Lab%20Screenshots/07-troubleshooting/05-vuln-detection-disabled.png)
 
 ---
 
 ### 📦 War Story 2 — LVM using only half its allocated space
 
-**Diagnosis:**
 ```bash
 sudo vgs
 # ubuntu-vg  56.95g  28.47g available but unused
-```
-
-**Fix:**
-```bash
 sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
 sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
 # Result: 56G  23G  32G  42%
 ```
 
-> 📸 Screenshot: Before and after — 28GB → 56GB
+![LVM expanded](Lab%20Screenshots/07-troubleshooting/06-lvm-expanded-56gb.png)
+
+![Indexer health green](Lab%20Screenshots/07-troubleshooting/07-indexer-health-green.png)
 
 ---
 
 ### 🔍 War Story 3 — FIM alerts invisible in dashboard
 
-Searched everywhere on the agent. Nothing appeared. The mistake: **agents don't generate alerts — managers do.**
+Searched everywhere on the agent. Nothing appeared. The mistake: **agents don't generate alerts, managers do.**
 
 ```bash
 # On UBUNTU (manager), not Kali:
@@ -385,8 +413,6 @@ sudo grep syscheck /var/ossec/logs/alerts/alerts.json | tail -5
 FIM database was corrupted. Rebuilt wazuh-db, restarted pipeline. Alerts appeared immediately.
 
 **Key lesson:** Always debug the manager-side pipeline, not the agent side. The agent watches and sends. The manager decides what becomes an alert.
-
-> 📸 Screenshot: FIM alert in alerts.json + confirmed in dashboard
 
 ---
 
@@ -403,18 +429,26 @@ Six techniques were detected and mapped automatically across all three attack ty
 | Privilege Escalation | T1548 | Sudo and Sudo Caching | sudo commands on Kali |
 | Defense Evasion | T1548 | Abuse Elevation Control | sudo escalation |
 
-> 📸 Screenshot: Full MITRE ATT&CK dashboard — tactics, techniques by agent, attacks by technique
+![MITRE full dashboard](Lab%20Screenshots/08-mitre-dashboard/09-mitre-full-dashboard.png)
+
+![Dashboard 197 alerts](Lab%20Screenshots/08-mitre-dashboard/06-dashboard-197-alerts.png)
+
+![MITRE events with techniques](Lab%20Screenshots/08-mitre-dashboard/05-mitre-events-techniques.png)
+
+![Kali agent MITRE and SCA](Lab%20Screenshots/08-mitre-dashboard/02-kali-agent-mitre-sca.png)
 
 ---
 
 ## 💡 What I Learned
 
-- How the Wazuh alert pipeline works end to end — by breaking each stage and fixing it
-- Linux disk management under pressure — LVM extension, live filesystem resize
+- How the Wazuh alert pipeline works end to end, by breaking each stage and fixing it
+- Linux disk management under pressure, LVM extension, live filesystem resize
 - Agents watch and send. Managers process and alert. Never debug on the wrong machine.
 - Raw logs (`ossec.log`, `alerts.json`) tell the truth when the UI shows nothing
 - How real attacks (brute force, recon) appear in a SIEM and map to MITRE ATT&CK
 - How connection throttling can mitigate a brute force attack before it succeeds
+
+A full breakdown is available in [LESSONS-LEARNED.md](LESSONS-LEARNED.md).
 
 ---
 
