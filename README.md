@@ -14,8 +14,9 @@
 
 <br/>
 
-> **A fully operational Security Operations Centre built from scratch on Apple Silicon.**
-> Not a tutorial follow-along. A real deployment — with real failures, real debugging, and real detections.
+> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon — documenting every failure along the way.
+>
+> **Most home labs stop when the dashboard loads. This one starts there.**
 
 <br/>
 
@@ -23,13 +24,56 @@
 
 </div>
 
+## 🚨 What Makes This Lab Different?
+
+Most Wazuh projects stop after installation.
+
+This project documents the complete lifecycle of a SOC platform:
+
+- Deployment
+- Configuration
+- Detection Validation
+- Attack Simulation
+- Failure Recovery
+- Performance Troubleshooting
+
+### Highlights
+
+✅ Apple Silicon (ARM64) deployment
+
+✅ Live endpoint monitoring
+
+✅ File Integrity Monitoring validation
+
+✅ MITRE ATT&CK mapping
+
+✅ Attack simulation testing
+
+✅ Real-world troubleshooting
+
+✅ End-to-end alert verification
+
+❌ Not a pre-built VM
+
+❌ Not a copy-paste Docker deployment
+
+❌ Not a tutorial follow-along
+
+The goal was not simply to install Wazuh.
+
+The goal was to understand how a SIEM behaves when things break.
+
+---
+
 ## 📌 Table of Contents
 
 - [What I Built](#-what-i-built)
+- [Lab Statistics](#-lab-statistics)
 - [Architecture](#️-architecture)
 - [Installation & Setup](#-installation--setup)
 - [Key Detections](#-key-detections)
 - [Attack Simulation](#-attack-simulation)
+- [SOC Analyst Investigation Example](#️-soc-analyst-investigation-example)
 - [Troubleshooting War Stories](#-troubleshooting-war-stories)
 - [MITRE ATT&CK Mapping](#-mitre-attck-mapping)
 - [What I Learned](#-what-i-learned)
@@ -39,14 +83,9 @@
 
 ## 🎯 What I Built
 
-This is not a pre-built VM. This is not a Docker Compose file someone else wrote.
+Built from a clean Ubuntu Server installation and configured entirely by hand.
 
-I built a **self-contained SOC environment** on Apple Silicon (ARM64) where:
-
-- The Wazuh manager, indexer, and dashboard run on a live Ubuntu Server VM
-- A Kali Linux endpoint acts as the monitored agent
-- Real events — authentication, sudo, file changes — flow through the pipeline
-- I broke things. I diagnosed them from raw logs. I fixed them.
+The environment was deployed, monitored, broken, repaired, and validated to understand how a real SOC platform behaves beyond the installation stage.
 
 | Capability | Status |
 |---|---|
@@ -57,6 +96,21 @@ I built a **self-contained SOC environment** on Apple Silicon (ARM64) where:
 | Attack simulation and detection | ✅ Complete |
 | Disk failure diagnosis and recovery | ✅ Complete |
 | MITRE ATT&CK mapping verified in dashboard | ✅ Complete |
+
+---
+
+## 📊 Lab Statistics
+
+| Metric | Value |
+|---|---|
+| Virtual Machines | 2 |
+| Operating Systems | Ubuntu Server 26.04 + Kali Linux 2026.1 |
+| SIEM Platform | Wazuh v4.12.0 |
+| Endpoints Monitored | 1 |
+| Security Events Generated | 200+ |
+| Major Failures Diagnosed | 3 |
+| Detection Categories Tested | 4 |
+| Alert Pipeline Validation | Complete |
 
 ---
 
@@ -253,6 +307,45 @@ Every single one of these actions — creation, permission change, rename, delet
 
 ---
 
+## 🕵️ SOC Analyst Investigation Example
+
+### Scenario
+
+A suspicious executable file appeared inside a monitored directory on the Kali endpoint.
+
+### Detection
+
+Wazuh File Integrity Monitoring generated alerts for:
+
+- File creation
+- Permission modification
+- File rename activity
+- File deletion
+
+### Investigation Process
+
+1. Verify alert source and affected endpoint
+2. Review file hashes and metadata
+3. Confirm ownership and permissions
+4. Correlate events with user activity
+5. Validate MITRE ATT&CK mapping
+6. Determine whether activity is legitimate or malicious
+
+### Outcome
+
+The activity was identified as a controlled attack simulation.
+
+The investigation confirmed:
+
+- Detection coverage was functioning correctly
+- Alerts propagated through the complete Wazuh pipeline
+- MITRE ATT&CK mappings appeared correctly in the dashboard
+- File Integrity Monitoring generated complete forensic metadata including MD5, SHA1 and SHA256 hashes
+
+This validated end-to-end detection capability across the environment.
+
+---
+
 ## 🔥 Troubleshooting War Stories
 
 This is where most lab writeups stop. Mine doesn't.
@@ -394,10 +487,14 @@ The FIM database was corrupted and silently blocking all syscheck writes. The ag
 
 **Samruddhi (Sam) Patil**
 
-[![GitHub](https://img.shields.io/badge/GitHub-samSecurity04-181717?style=for-the-badge&logo=github)](https://github.com/samSecurity04)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-samruddhi--p--patil-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/samruddhi-p-patil/)
+I am an aspiring SOC Analyst with a strong interest in threat detection, SIEM engineering, incident response, and blue team operations. This project was built to gain hands-on experience deploying, troubleshooting, and validating enterprise security infrastructure in a controlled lab environment.
 
 🎓 CompTIA Security+ &nbsp;|&nbsp; Microsoft SC-900 &nbsp;|&nbsp; EC-Council CASE (Java) &nbsp;|&nbsp; Google Cybersecurity
+
+<br/>
+
+[![GitHub](https://img.shields.io/badge/GitHub-samSecurity04-181717?style=for-the-badge&logo=github)](https://github.com/samSecurity04)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-samruddhi--p--patil-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/samruddhi-p-patil/)
 
 <br/>
 
