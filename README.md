@@ -14,7 +14,7 @@
 
 <br/>
 
-> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon — documenting every failure along the way.
+> Built, broken, recovered, and validated a complete Wazuh SOC environment on Apple Silicon; documenting every failure along the way.
 >
 > **Most home labs stop when the dashboard loads. This one starts there.**
 
@@ -56,8 +56,6 @@ This project documents the complete lifecycle of a SOC platform:
 ❌ Not a pre-built VM
 
 ❌ Not a copy-paste Docker deployment
-
-❌ Not a tutorial follow-along
 
 The goal was not simply to install Wazuh.
 
