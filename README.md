@@ -33,7 +33,6 @@
 - [Troubleshooting War Stories](#-troubleshooting-war-stories)
 - [MITRE ATT&CK Mapping](#-mitre-attck-mapping)
 - [What I Learned](#-what-i-learned)
-- [Next Phase](#-next-phase)
 - [Skills Demonstrated](#-skills-demonstrated)
 
 ---
@@ -58,9 +57,6 @@ I built a **self-contained SOC environment** on Apple Silicon (ARM64) where:
 | Attack simulation and detection | ✅ Complete |
 | Disk failure diagnosis and recovery | ✅ Complete |
 | MITRE ATT&CK mapping verified in dashboard | ✅ Complete |
-| Suricata IDS integration | 🔄 Next Phase |
-| Splunk forwarding + dashboards | 🔄 Next Phase |
-| Windows endpoint agent | 🔄 Next Phase |
 
 ---
 
@@ -210,6 +206,7 @@ After configuring syscheck and restarting the agent, I created, modified, and de
 6. Visible in Threat Hunting dashboard
 
 **Each FIM alert captured:**
+
 - File path: `/home/kali/test/a.txt`
 - Event type: added / modified / deleted
 - Mode: realtime
@@ -260,8 +257,9 @@ Every single one of these actions — creation, permission change, rename, delet
 
 This is where most lab writeups stop. Mine doesn't.
 
-<details>
-<summary><b>💾 War Story 1 — Disk hit 100% and the manager died</b></summary>
+---
+
+### 💾 War Story 1 — Disk hit 100% and the manager died
 
 **What happened:** The Wazuh manager crashed and refused to restart. The dashboard went offline.
 
@@ -269,11 +267,12 @@ This is where most lab writeups stop. Mine doesn't.
 ```bash
 df -h /
 # /dev/mapper/ubuntu--vg-ubuntu--lv 28G 28G 0 100%
+
 sudo du -h --max-depth=2 /var/ossec | sort -h | tail -15
 # 6.4G /var/ossec/queue/vd_updater  ← the culprit
 ```
 
-**Root cause:** The vulnerability scanner was downloading CVE feeds into `/var/ossec/queue/vd_updater` and filled the entire 28GB disk.
+**Root cause:** The vulnerability scanner was silently downloading CVE feeds into `/var/ossec/queue/vd_updater` and filled the entire 28GB disk. No warning. Manager just died.
 
 **Fix:**
 ```bash
@@ -284,23 +283,22 @@ sudo chown wazuh:wazuh /var/ossec/queue/vd_updater
 sudo systemctl start wazuh-manager
 ```
 
-Then disabled the vulnerability scanner in `ossec.conf`:
+Disabled the vulnerability scanner permanently in `ossec.conf`:
 ```xml
 <vulnerability-detection>
   <enabled>no</enabled>
 </vulnerability-detection>
 ```
 
-**Result:** Disk recovered from 100% to 82% used.
+**Result:** Disk recovered from 100% to 82%. Manager came back online.
 
-> 📸 Screenshot: df -h showing 100% to cleanup to 82% free
+> 📸 Screenshot: df -h showing 100% → cleanup → 82% free
 
-</details>
+---
 
-<details>
-<summary><b>📦 War Story 2 — LVM volume using only half its allocated space</b></summary>
+### 📦 War Story 2 — LVM volume using only half its allocated space
 
-**What happened:** Even after deleting 6.4GB of CVE feeds, the disk was still at 82% with only 5.1GB free — not enough headroom for a SIEM.
+**What happened:** Even after deleting 6.4GB of CVE feeds, only 5.1GB was free — not enough headroom for a running SIEM.
 
 **Diagnosis:**
 ```bash
@@ -309,12 +307,13 @@ sudo vgs
 # ubuntu-vg   1   1  56.95g  28.47g
 ```
 
-The VM had 56GB allocated but the logical volume was only using 28GB. Classic LVM issue.
+The VM had 56GB allocated but the logical volume was only using 28GB. Classic LVM gap.
 
 **Fix:**
 ```bash
 sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
 sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
+
 df -h /
 # 56G  23G  32G  42%  /
 ```
@@ -323,32 +322,32 @@ df -h /
 
 > 📸 Screenshot: lvextend + resize2fs + df showing 56G with 32G free
 
-</details>
+---
 
-<details>
-<summary><b>🔍 War Story 3 — FIM alerts not appearing in dashboard</b></summary>
+### 🔍 War Story 3 — FIM alerts not appearing in dashboard
 
 **What happened:** Files were being created in `/home/kali/test` but nothing appeared in the Threat Hunting dashboard. Searches for `location:syscheck` returned zero results.
 
-**Wrong approach (what the internet says):** Check alerts.json on the agent. This is wrong — agents do not generate alerts, managers do.
+**Wrong approach (what most tutorials say):** Check alerts.json on the agent. This is wrong — agents do not generate alerts. Managers do.
 
-**Correct diagnosis:**
+**Correct diagnosis — on the MANAGER, not the agent:**
 ```bash
-# On the MANAGER (Ubuntu), not the agent
 sudo grep syscheck /var/ossec/logs/alerts/alerts.json | tail -5
 ```
 
-**Root cause:** `wazuh-analysisd` was throwing `ERROR: dbsync: Bad response from database: Cannot save Syscheck` — the FIM database was corrupted and blocking all syscheck writes.
+**Root cause:** `wazuh-analysisd` was throwing:
+```
+ERROR: dbsync: Bad response from database: Cannot save Syscheck
+```
+The FIM database was corrupted and silently blocking all syscheck writes. The agent was detecting fine. The manager was dropping everything.
 
-**Fix:** Rebuilt the wazuh-db service and restarted the full pipeline. Once the database recovered, FIM alerts immediately appeared in `alerts.json` and propagated to the dashboard.
+**Fix:** Rebuilt the wazuh-db service and restarted the full pipeline. FIM alerts immediately appeared in `alerts.json` and propagated to the dashboard.
 
-**Key lesson:** Always debug the manager-side pipeline, not the agent side. The agent just watches and sends. The manager decides what becomes an alert.
+**Key lesson:** Always debug the manager-side pipeline, not the agent side. The agent watches and sends. The manager decides what becomes an alert.
 
 > 📸 Screenshot: grep syscheck alerts.json — FIM entry with full hash capture
 
 > 📸 Screenshot: location:syscheck in dashboard — 4 hits confirmed
-
-</details>
 
 ---
 
@@ -368,25 +367,18 @@ sudo grep syscheck /var/ossec/logs/alerts/alerts.json | tail -5
 ## 💡 What I Learned
 
 **Technical:**
-- How the Wazuh alert pipeline actually works — agent → analysisd → alerts.json → indexer → dashboard — not just in theory but by watching each stage break and fixing it
-- Linux disk management under pressure — LVM logical volume extension, live filesystem resize
-- The difference between agent-side and manager-side processes — a critical debugging distinction
+
+- How the Wazuh alert pipeline actually works end to end — not just in theory but by watching each stage break and fixing it
+- Linux disk management under pressure — LVM logical volume extension, live filesystem resize with zero downtime
+- The critical difference between agent-side and manager-side processes when debugging a SIEM
 - How to read raw SIEM logs (`ossec.log`, `alerts.json`) instead of relying on the UI
+- How FIM detections map directly to MITRE ATT&CK techniques
 
 **Mindset:**
-- Real infrastructure breaks in unexpected ways. The CVE scanner filling a disk is not in any tutorial.
+
+- Real infrastructure breaks in unexpected ways. A CVE scanner silently filling a disk is not in any tutorial.
 - Debugging a SIEM requires understanding the full data pipeline, not just the tool surface
-- Documentation while things are broken is as important as documentation when they work
-
----
-
-## 🚧 Next Phase
-
-- [ ] Integrate Suricata IDS with MITRE ATT&CK rule mapping
-- [ ] Add Splunk log forwarding and build custom detection dashboards
-- [ ] Simulate brute force SSH attack and verify alert escalation
-- [ ] Simulate lateral movement and map to ATT&CK
-- [ ] Expand agent fleet to include a Windows endpoint
+- Documentation during failure is as valuable as documentation during success
 
 ---
 
