@@ -6,7 +6,7 @@ These observations were written during the build process and reflect real issues
 
 ---
 
-## Deployment and Installation
+## 🚀 Deployment and Installation
 
 * The Wazuh install script assumes x86 hardware and refuses to run on Apple Silicon. The `-i` flag bypasses the hardware check and the stack runs successfully on ARM64.
 * Port conflicts can silently block installation. My previous SafeLine WAF Docker containers were still holding port 443, which prevented Wazuh from deploying until the containers were stopped.
@@ -14,7 +14,7 @@ These observations were written during the build process and reflect real issues
 
 ---
 
-## Agent Deployment
+## 🖥️ Agent Deployment
 
 * Choosing the correct agent package matters. On Kali ARM64, I needed the DEB aarch64 package rather than the amd64 version.
 * Agent enrollment is not the same as agent reporting. An agent can appear registered before it is actually sending telemetry. Confirming "Active" status in the dashboard is the real validation.
@@ -22,15 +22,15 @@ These observations were written during the build process and reflect real issues
 
 ---
 
-## File Integrity Monitoring
+## 📁 File Integrity Monitoring
 
 * Agents detect; managers alert. I initially spent time checking logs on the Kali agent before realizing alerts are only generated on the Ubuntu manager. The agent watches files and forwards events, while the manager determines what becomes an alert.
 * The web dashboard is not the source of truth. When FIM alerts failed to appear in the UI, the root cause was a corrupted FIM database on the manager. The issue only became visible after reviewing `alerts.json` directly.
-* FIM captures far more forensic detail than I expected. Each alert included file paths, event types, MD5/SHA1/SHA256 hashes, permissions, ownership, and timestamps—enough information to support a meaningful investigation.
+* FIM captures far more forensic detail than I expected. Each alert included file paths, event types, MD5/SHA1/SHA256 hashes, permissions, ownership, and timestamps, which is enough information to support a meaningful investigation.
 
 ---
 
-## Attack Simulation and Hydra
+## 💥 Attack Simulation and Hydra
 
 This was the area where I learned the most.
 
@@ -40,7 +40,7 @@ This was the area where I learned the most.
 
 ---
 
-## Network Reconnaissance
+## 🔍 Network Reconnaissance
 
 * Reconnaissance activity is detectable. Nmap host discovery and service enumeration generated observable events within Wazuh.
 * Service scans immediately revealed what an attacker would likely target first: SSH (22), HTTPS (443), and Apache (8080).
@@ -48,7 +48,7 @@ This was the area where I learned the most.
 
 ---
 
-## MITRE ATT&CK
+## 🎯 MITRE ATT&CK
 
 This was another concept that became much clearer during the lab.
 
@@ -58,7 +58,7 @@ This was another concept that became much clearer during the lab.
 
 ---
 
-## Infrastructure and Recovery
+## 🔧 Infrastructure and Recovery
 
 * A SIEM can take down its own host. The vulnerability detection component filled the entire disk with CVE feed downloads and ultimately caused the manager to fail.
 * Allocated storage is not the same as usable storage. Although the VM had 56GB assigned, LVM was only using half of it. Extending the logical volume and resizing the filesystem solved the issue without downtime.
@@ -66,7 +66,7 @@ This was another concept that became much clearer during the lab.
 
 ---
 
-## Mindset
+## 🧠 Mindset
 
 * The most valuable screenshots were not the successful ones, they were the failures. A disk at 100%, a port conflict, or a corrupted database tells a more authentic story than a clean dashboard.
 * One complete lab teaches more than several unfinished projects. Fully documenting deployment, detection, attack simulation, failure, and recovery provided significantly more value than immediately moving on to another tool.
@@ -74,7 +74,7 @@ This was another concept that became much clearer during the lab.
 
 ---
 
-## Biggest Mistakes I Made
+## ⚠️ Biggest Mistakes I Made
 
 * Assumed alerts would be generated on the agent rather than the manager.
 * Trusted the dashboard before validating raw log sources.
@@ -84,7 +84,7 @@ This was another concept that became much clearer during the lab.
 
 ---
 
-## What I'd Do Differently
+## 🔄 What I'd Do Differently
 
 * Implement disk monitoring on the SIEM host from the beginning.
 * Allocate the full logical volume during initial VM deployment.
@@ -93,13 +93,11 @@ This was another concept that became much clearer during the lab.
 
 ---
 
-## Most Valuable Lesson
+## 💡 Most Valuable Lesson
 
 The most important lesson from this lab was that security monitoring is only as reliable as the infrastructure supporting it.
 
-Detecting attacks was often the easy part.
-
-The more difficult challenge was maintaining visibility when the monitoring platform itself experienced failures.
+Detecting attacks was often the easy part. The more difficult challenge was maintaining visibility when the monitoring platform itself experienced failures.
 
 Learning how to troubleshoot the SIEM ultimately provided more value than learning how to install it.
 
